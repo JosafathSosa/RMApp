@@ -1,15 +1,23 @@
 import react from "react";
-import { StyleSheet, ScrollView } from "react-native";
-
-import { HelloWave } from "@/components/HelloWave";
-import ParallaxScrollView from "@/components/ParallaxScrollView";
+import { StyleSheet, Button, ScrollView } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
-import { ThemedView } from "@/components/ThemedView";
+import { auth } from "../../../utils/firebase";
+import { useRouter } from "expo-router";
+import { signOut } from "firebase/auth";
 
 export default function ProfileScreen() {
+  const router = useRouter();
+
+  const handleLogout = () => {
+    signOut(auth).then(() => {
+      router.replace("/login");
+    });
+  };
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <ThemedText>Hola profile screen</ThemedText>
+      <ThemedText>Hola home screen</ThemedText>
+      <Button title="Logout" onPress={handleLogout} />
     </ScrollView>
   );
 }
