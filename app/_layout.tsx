@@ -14,6 +14,13 @@ import { auth } from "../utils/firebase";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { PaperProvider } from "react-native-paper";
 
+import { LogBox } from "react-native";
+
+// Ignorar el warning específico
+LogBox.ignoreLogs([
+  "[Reanimated] Reduced motion setting is enabled on this device.",
+]);
+
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 

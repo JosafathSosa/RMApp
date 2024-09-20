@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, FlatList, StyleSheet, Button } from "react-native";
+import { View, Text, ScrollView, StyleSheet, Button } from "react-native";
 import * as Progress from "react-native-progress"; // Import correcto
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -12,19 +12,19 @@ type Mare = {
 };
 
 const mares: Mare[] = [
-  { name: "New Moon", totalDays: 340, currentDays: 100 },
+  { name: "New Moon", totalDays: 340, currentDays: 320 },
   { name: "Luna de Plata", totalDays: 340, currentDays: 268 },
   { name: "Foreverteen", totalDays: 340, currentDays: 208 },
   { name: "Magna Forestry", totalDays: 340, currentDays: 197 },
 ];
 
 export function PregnantMaresScreen() {
-  const renderItem = ({ item }: { item: Mare }) => {
+  const renderItem = (item: Mare) => {
     const remainingDays = item.totalDays - item.currentDays;
     const progress = item.currentDays / item.totalDays;
 
     return (
-      <ThemedView style={styles.itemContainer}>
+      <ThemedView style={styles.itemContainer} key={item.name}>
         <View style={styles.header}>
           <ThemedText style={styles.name}>{item.name}</ThemedText>
           <Button title="i" onPress={() => {}} />
@@ -38,7 +38,7 @@ export function PregnantMaresScreen() {
             color="green"
             borderRadius={5}
             height={25}
-            unfilledColor="#e0e0e0" // Color de la parte no llenada
+            unfilledColor="#a9dfbf" // Color de la parte no llenada
             style={styles.progressBar}
           />
           {/* Superponiendo el texto dentro de la barra */}
@@ -57,11 +57,7 @@ export function PregnantMaresScreen() {
 
   return (
     <View style={styles.container}>
-      <FlatList
-        data={mares}
-        keyExtractor={(item) => item.name}
-        renderItem={renderItem}
-      />
+      <View>{mares.slice(0, 3).map(renderItem)}</View>
       <Button title="Ver Todo" onPress={() => {}} />
     </View>
   );
@@ -71,7 +67,6 @@ const styles = StyleSheet.create({
   container: {
     marginTop: 10,
     height: 310,
-    padding: 0,
   },
   itemContainer: {
     borderRadius: 10,
@@ -110,7 +105,6 @@ const styles = StyleSheet.create({
   },
   progressText: {
     color: "#fff",
-
     fontSize: 15,
   },
 });
