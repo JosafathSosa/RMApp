@@ -1,11 +1,9 @@
 import React from "react";
-import { View, Text, ScrollView, StyleSheet } from "react-native";
-import { Button } from "react-native-paper";
+import { View, ScrollView, StyleSheet } from "react-native";
 import * as Progress from "react-native-progress"; // Import correcto
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { useRouter, Link } from "expo-router";
-import { mares } from "../../../app/(tabs)/(home)/mares";
+import { mares } from "./mares";
 
 // Definir el tipo para los datos de las yeguas
 type Mare = {
@@ -14,9 +12,7 @@ type Mare = {
   currentDays: number;
 };
 
-export function PregnantMaresScreen() {
-  const router = useRouter();
-
+export default function AllPregnantMares() {
   const renderItem = (item: Mare) => {
     const remainingDays = item.totalDays - item.currentDays;
     const progress = item.currentDays / item.totalDays;
@@ -25,11 +21,6 @@ export function PregnantMaresScreen() {
       <ThemedView style={styles.itemContainer} key={item.name}>
         <View style={styles.header}>
           <ThemedText style={styles.name}>{item.name}</ThemedText>
-          <Link href="/pregnantStatus">
-            <Button mode="text" textColor="green" style={styles.btni}>
-              i
-            </Button>
-          </Link>
         </View>
 
         {/* Contenedor para superponer el texto sobre la barra de progreso */}
@@ -40,10 +31,9 @@ export function PregnantMaresScreen() {
             color="green"
             borderRadius={5}
             height={25}
-            unfilledColor="#a9dfbf" // Color de la parte no llenada
+            unfilledColor="#a9dfbf"
             style={styles.progressBar}
           />
-          {/* Superponiendo el texto dentro de la barra */}
           <View style={styles.progressTextContainer}>
             <ThemedText style={styles.progressText}>
               {item.currentDays} días de gestación
@@ -58,21 +48,14 @@ export function PregnantMaresScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <View>{mares.slice(0, 3).map(renderItem)}</View>
-      <Link href="/allPregnantMares">
-        <Button mode="text" textColor="green">
-          Ver todo
-        </Button>
-      </Link>
-    </View>
+    <ScrollView style={styles.container}>{mares.map(renderItem)}</ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     marginVertical: 20,
-    height: 310,
+    padding: 10,
   },
   itemContainer: {
     borderRadius: 10,
@@ -88,9 +71,6 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 16,
     fontWeight: "bold",
-  },
-  btni: {
-    backgroundColor: "transparent",
   },
   progressContainer: {
     position: "relative",

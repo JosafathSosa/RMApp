@@ -7,8 +7,6 @@ import { PregnantMaresScreen } from "../../../components/horses/yeguas/PregnantM
 import { HorseCategoryCount } from "../../../components/horses/horsesCategories/HorseCategoryCount";
 import { HorseCategoryChart } from "../../../components/horses/horsesCategoryChart/HorseCategoryChart";
 
-import { ThemedText } from "@/components/ThemedText";
-
 export default function HomeScreen() {
   const router = useRouter();
 
