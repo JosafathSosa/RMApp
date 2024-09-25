@@ -9,6 +9,7 @@ import { mares } from "../../../app/(tabs)/(home)/mares";
 
 // Definir el tipo para los datos de las yeguas
 type Mare = {
+  id: number;
   name: string;
   totalDays: number;
   currentDays: number;
@@ -25,7 +26,12 @@ export function PregnantMaresScreen() {
       <ThemedView style={styles.itemContainer} key={item.name}>
         <View style={styles.header}>
           <ThemedText style={styles.name}>{item.name}</ThemedText>
-          <Link href="/pregnantStatus">
+          <Link
+            href={{
+              pathname: "/pregnantStatus",
+              params: { id: item.id },
+            }}
+          >
             <Button mode="text" textColor="green" style={styles.btni}>
               i
             </Button>

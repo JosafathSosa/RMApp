@@ -1,12 +1,15 @@
 import React from "react";
-import { View, ScrollView, StyleSheet } from "react-native";
+import { View, Text, ScrollView, StyleSheet } from "react-native";
+import { Button } from "react-native-paper";
 import * as Progress from "react-native-progress"; // Import correcto
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { mares } from "./mares";
+import { useRouter, Link } from "expo-router";
+import { mares } from "../../../app/(tabs)/(home)/mares";
 
 // Definir el tipo para los datos de las yeguas
 type Mare = {
+  id: number;
   name: string;
   totalDays: number;
   currentDays: number;
@@ -21,6 +24,16 @@ export default function AllPregnantMares() {
       <ThemedView style={styles.itemContainer} key={item.name}>
         <View style={styles.header}>
           <ThemedText style={styles.name}>{item.name}</ThemedText>
+          <Link
+            href={{
+              pathname: "/pregnantStatus",
+              params: { id: item.id },
+            }}
+          >
+            <Button mode="text" textColor="green" style={styles.btni}>
+              i
+            </Button>
+          </Link>
         </View>
 
         {/* Contenedor para superponer el texto sobre la barra de progreso */}
@@ -75,6 +88,9 @@ const styles = StyleSheet.create({
   progressContainer: {
     position: "relative",
     marginVertical: 0,
+  },
+  btni: {
+    backgroundColor: "transparent",
   },
   progressBar: {
     height: 25,
