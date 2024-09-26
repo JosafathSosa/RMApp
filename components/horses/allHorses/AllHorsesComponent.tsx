@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { useNavigation } from "@react-navigation/native";
+import { useRouter } from "expo-router"; // Importa useRouter
 
 type Horse = {
   id: string;
@@ -28,18 +28,43 @@ const horses: Horse[] = [
   {
     id: "933000123456789",
     name: "Bastet",
-    birthDate: "5A 4M 20D",
+    birthDate: "5A 1M 1D",
     microchip: "933000123456789",
+  },
+  {
+    id: "23456789",
+    name: "Luna",
+    birthDate: "1A 4M 20D",
+    microchip: "933000123456789",
+  },
+  {
+    id: "6789",
+    name: "Boxeador",
+    birthDate: "2A 7M 20D",
+    microchip: "933000123456789",
+  },
+  {
+    id: "456789",
+    name: "Canelo",
+    birthDate: "7A 2M 12D",
+    microchip: "933000123",
   },
   // Agrega más caballos aquí
 ];
 
 export const AllHorsesComponent = () => {
-  const navigation = useNavigation();
-
+  const router = useRouter(); // Obtiene el router
   // Aseguramos el tipo de 'item' usando la interfaz Horse
   const renderItem = ({ item }: { item: Horse }) => (
-    <TouchableOpacity onPress={() => console.log("Hola")}>
+    <TouchableOpacity
+      onPress={() => {
+        // Navega a HorseDetailsScreen y pasa el caballo como parámetro
+        router.push({
+          pathname: "/horseDetailsScreen",
+          params: { id: item.id },
+        });
+      }}
+    >
       <ThemedView style={styles.card}>
         <Image
           source={{
