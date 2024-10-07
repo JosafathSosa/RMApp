@@ -11,43 +11,43 @@ import { ThemedView } from "@/components/ThemedView";
 import { useRouter } from "expo-router"; // Importa useRouter
 
 type Horse = {
-  id: string;
+  id: number;
   name: string;
   birthDate: string;
-  microchip: string;
+  microchip: number;
 };
 
 // Ejemplo de datos de caballos
 const horses: Horse[] = [
   {
-    id: "6002326",
+    id: 6002326,
     name: "Amy Down Ryon (Panzona)",
     birthDate: "5A 6M 2D",
-    microchip: "933000320656141",
+    microchip: 933000320656141,
   },
   {
-    id: "933000123456789",
+    id: 933000123456789,
     name: "Bastet",
     birthDate: "5A 1M 1D",
-    microchip: "933000123456789",
+    microchip: 933000123456789,
   },
   {
-    id: "23456789",
+    id: 23456789,
     name: "Luna",
     birthDate: "1A 4M 20D",
-    microchip: "933000123456789",
+    microchip: 933000123456789,
   },
   {
-    id: "6789",
+    id: 6789,
     name: "Boxeador",
     birthDate: "2A 7M 20D",
-    microchip: "933000123456789",
+    microchip: 933000123456789,
   },
   {
-    id: "456789",
+    id: 456789,
     name: "Canelo",
     birthDate: "7A 2M 12D",
-    microchip: "933000123",
+    microchip: 933000123,
   },
   // Agrega más caballos aquí
 ];
@@ -91,7 +91,7 @@ export const AllHorsesComponent = () => {
       <FlatList
         data={horses}
         renderItem={renderItem}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item.id.toString()}
       />
     </View>
   );
