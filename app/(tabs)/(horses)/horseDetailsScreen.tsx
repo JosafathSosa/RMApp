@@ -17,6 +17,8 @@ import FontAwesome from "react-native-vector-icons/FontAwesome";
 import { AntDesign, Ionicons } from "@expo/vector-icons";
 import { Horse, horses } from "./horses";
 import { PedigreeComponent } from "@/components/horses/pedigreeComponent/PedigreeComponent";
+import { useActionSheet } from "@expo/react-native-action-sheet";
+import { useRouter } from "expo-router";
 
 // Definir el tipo de Movimiento
 type Movimiento = {
@@ -28,9 +30,46 @@ type Movimiento = {
 };
 
 export default function HorseDetailsScreen() {
+  const router = useRouter(); // Obtiene el router
+
   const { id } = useLocalSearchParams();
   const horseId = parseInt(id as string);
   const horse = horses[horseId];
+
+  const { showActionSheetWithOptions } = useActionSheet();
+
+  const openMenu = () => {
+    const options = [
+      "Fotos",
+      "Sanidad",
+      "Herrado",
+      "Control reproductivo",
+      "Ingresos o costos",
+      "Servicios facturables",
+      "Medidas",
+      "Notas",
+      "Cancelar",
+    ];
+
+    const cancelButtonIndex = 8; // Último ítem como botón de cancelar
+
+    showActionSheetWithOptions(
+      {
+        options,
+        cancelButtonIndex,
+        title: "Agregar contenido", // Título opcional
+      },
+      (buttonIndex?: number) => {
+        // Verificamos si buttonIndex es undefined o si el índice seleccionado es Cancelar
+        if (buttonIndex === undefined || buttonIndex === cancelButtonIndex) {
+          return;
+        }
+
+        // Si buttonIndex es válido, accedemos a la opción seleccionada
+        console.log(`Seleccionaste: ${options[buttonIndex]}`);
+      }
+    );
+  };
 
   // Estado para manejar el historial dinámico, ahora con el tipo Movimiento
   const [movimientos, setMovimientos] = useState<Movimiento[]>([
@@ -104,7 +143,12 @@ export default function HorseDetailsScreen() {
               style={{ marginVertical: 10 }}
               textColor="white"
               buttonColor="green"
-              onPress={() => console.log("Ver info del caballo")}
+              onPress={() => {
+                router.push({
+                  pathname: "/info/horseInfoScreen",
+                  params: { id: horseId },
+                });
+              }}
             >
               Info del caballo
             </Button>
@@ -175,7 +219,7 @@ export default function HorseDetailsScreen() {
       <Pressable
         onPressIn={() => setPressed(true)}
         onPressOut={() => setPressed(false)}
-        onPress={() => console.log("Hola")}
+        onPress={() => openMenu()}
         style={({ pressed }) => [
           styles.AddHorseDetailButton,
           { transform: [{ scale: pressed ? 0.9 : 1 }] },
@@ -222,8 +266,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   image: {
-    width: 200,
-    height: 200,
+    width: 160,
+    height: 160,
     borderRadius: 10,
     backgroundColor: "#ccc",
     marginRight: 15,

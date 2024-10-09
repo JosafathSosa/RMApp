@@ -13,6 +13,7 @@ import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "../utils/firebase";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { PaperProvider } from "react-native-paper";
+import { ActionSheetProvider } from "@expo/react-native-action-sheet";
 
 import { LogBox } from "react-native";
 
@@ -62,9 +63,11 @@ export default function RootLayout() {
         <ThemeProvider
           value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
         >
-          <Stack>
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          </Stack>
+          <ActionSheetProvider>
+            <Stack>
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            </Stack>
+          </ActionSheetProvider>
         </ThemeProvider>
       </PaperProvider>
       <Toast />

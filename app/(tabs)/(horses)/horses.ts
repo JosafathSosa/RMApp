@@ -96,7 +96,7 @@ export const horses: Record<number, Horse> = {
     },
   },
   933000123456789: {
-    id: 6002326,
+    id: 933000123456789,
     name: "Bastet",
     birthDate: "5A 6M 2D",
     microchip: 933000320656141,
