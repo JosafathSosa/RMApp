@@ -1,6 +1,12 @@
 import React, { useState } from "react";
-import { StyleSheet, View, Pressable } from "react-native";
-import { Avatar, Button, IconButton } from "react-native-paper";
+import {
+  StyleSheet,
+  View,
+  Pressable,
+  FlatList,
+  TouchableOpacity,
+} from "react-native";
+import { Avatar, Button, Divider, IconButton } from "react-native-paper";
 import { useRouter } from "expo-router";
 import { getAuth, signOut, updateProfile } from "firebase/auth";
 import { ThemedView } from "@/components/ThemedView";
@@ -8,6 +14,17 @@ import { ThemedText } from "@/components/ThemedText";
 import * as ImagePicker from "expo-image-picker"; // Para seleccionar la imagen
 import { ref, uploadBytes, getDownloadURL, getStorage } from "firebase/storage"; // Firebase Storage
 import Toast from "react-native-toast-message";
+
+type Option = {
+  icon: string; // Nombre del ícono
+  name: string; // Nombre de la opción
+};
+
+const options: Option[] = [
+  { icon: "account", name: "Categoría" },
+  { icon: "map-marker", name: "Ubicación" },
+  { icon: "cow", name: "Razas" },
+];
 
 export default function ProfileScreen() {
   const [image, setImage] = useState<string | null>(null); // Estado para la imagen
@@ -25,7 +42,6 @@ export default function ProfileScreen() {
     });
 
     if (!result.canceled && result.assets && result.assets.length > 0) {
-      // Subir la imagen seleccionada a Firebase
       uploadImageToFirebase(result.assets[0].uri);
     }
   };
@@ -36,26 +52,15 @@ export default function ProfileScreen() {
 
     if (user) {
       try {
-        // Obtener el blob de la imagen
         const response = await fetch(uri);
         const blob = await response.blob();
 
-        // Crear una referencia a Firebase Storage con el UID del usuario
         const storageRef = ref(storage, `avatars/${user.uid}`);
-
-        // Subir la imagen a Firebase Storage
         await uploadBytes(storageRef, blob);
-
-        // Obtener la URL de la imagen subida
         const downloadUrl = await getDownloadURL(storageRef);
-
-        // Actualizar el estado local con la nueva URL para refrescar el avatar
         setImage(downloadUrl);
-
-        // Actualizar el perfil del usuario en Firebase Authentication
         await updateProfile(user, { photoURL: downloadUrl });
 
-        // Mostrar un mensaje de éxito
         Toast.show({
           type: "success",
           position: "bottom",
@@ -78,12 +83,28 @@ export default function ProfileScreen() {
     });
   };
 
+  // Función para renderizar cada ítem de la lista de opciones
+  const renderItem = ({ item }: { item: Option }) => (
+    <TouchableOpacity onPress={() => console.log("Modals")}>
+      <ThemedView>
+        <View style={styles.optionContainer}>
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <IconButton icon={item.icon} size={20} />
+            <ThemedText>{item.name}</ThemedText>
+          </View>
+          <IconButton icon="arrow-right" size={20} />
+        </View>
+        <Divider />
+      </ThemedView>
+    </TouchableOpacity>
+  );
+
   return (
     <View style={styles.container}>
       <ThemedView style={styles.userInfoContainer}>
         <View style={styles.avatarContainer}>
           <Avatar.Image
-            size={120}
+            size={100}
             source={{
               uri:
                 image ||
@@ -92,7 +113,6 @@ export default function ProfileScreen() {
             }}
             style={styles.avatar}
           />
-          {/* Ícono de lápiz en la esquina inferior derecha */}
           <Pressable onPress={pickImage} style={styles.editIcon}>
             <IconButton
               icon="pencil"
@@ -106,6 +126,15 @@ export default function ProfileScreen() {
         <ThemedText>{user?.email}</ThemedText>
       </ThemedView>
 
+      {/* FlatList que muestra las opciones */}
+      <View style={styles.flatList}>
+        <FlatList
+          data={options}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.name}
+          scrollEnabled={false}
+        />
+      </View>
       <View>
         <Button
           mode="contained"
@@ -127,11 +156,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   userInfoContainer: {
+    width: "90%",
+    height: 150,
     display: "flex",
     flexDirection: "row",
     alignItems: "center",
     marginTop: 20,
-    borderRadius: 5,
+    borderRadius: 10,
     gap: 20,
     padding: 20,
   },
@@ -151,6 +182,20 @@ const styles = StyleSheet.create({
   iconButton: {
     width: 20,
     height: 20,
+  },
+  optionContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: 10,
+
+    height: 50,
+  },
+  flatList: {
+    width: "90%",
+    marginTop: 30,
+    borderRadius: 10,
+    overflow: "hidden",
   },
   logoutBtn: {
     marginTop: 20,
