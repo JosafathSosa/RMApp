@@ -50,6 +50,7 @@ export default function LoginScreen() {
         label="Correo"
         onChangeText={(text) => formik.setFieldValue("email", text)}
         keyboardType="email-address"
+        activeOutlineColor="green"
         mode="outlined"
         style={styles.input}
         error={formik.touched.email && formik.errors.email ? true : false}
@@ -62,6 +63,7 @@ export default function LoginScreen() {
         label="Contraseña"
         onChangeText={(text) => formik.setFieldValue("password", text)}
         secureTextEntry
+        activeOutlineColor="green"
         mode="outlined"
         style={styles.input}
         error={formik.touched.password && formik.errors.password ? true : false}
@@ -73,6 +75,8 @@ export default function LoginScreen() {
       <View style={styles.buttonView}>
         <Button
           mode="contained"
+          buttonColor="green"
+          textColor="white"
           onPress={() => formik.handleSubmit()} // Llamar correctamente handleSubmit
           loading={loading} // Mostrar estado de carga
           style={styles.button}
@@ -82,6 +86,7 @@ export default function LoginScreen() {
 
         <Button
           mode="text"
+          textColor="green"
           onPress={() => console.log("Navigate to Sign Up")}
           style={styles.button}
         >
