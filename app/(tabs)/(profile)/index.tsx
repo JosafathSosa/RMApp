@@ -1,12 +1,16 @@
 import react from "react";
-import { StyleSheet, Button, ScrollView } from "react-native";
+import { StyleSheet, Button, ScrollView, View } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { auth } from "../../../utils/firebase";
 import { useRouter } from "expo-router";
-import { signOut } from "firebase/auth";
+import { getAuth, signOut } from "firebase/auth";
 
 export default function ProfileScreen() {
   const router = useRouter();
+  const auth = getAuth();
+  const user = auth.currentUser;
+
+  console.log(user);
 
   const handleLogout = () => {
     signOut(auth).then(() => {
@@ -15,17 +19,17 @@ export default function ProfileScreen() {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <ThemedText>Hola home screen</ThemedText>
-      <Button title="Logout" onPress={handleLogout} />
-    </ScrollView>
+    <View style={styles.container}>
+      <View>
+        <Button title="Logout" onPress={handleLogout} />
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
     alignItems: "center",
   },
 });

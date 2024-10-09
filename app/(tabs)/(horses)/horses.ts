@@ -1,12 +1,20 @@
 export type Horse = {
-  id: number;
-  name: string;
-  birthDate: string;
-  microchip: number;
-  isPregnant: boolean;
+  id?: number;
+  number?: number;
+  name?: string;
+  birthDate?: string;
+  microchip?: number;
+  isPregnant?: boolean;
   gestationDays: number;
   currentDays: number;
-  imageUrl: string;
+  imageUrl?: string;
+  bornDate?: string;
+  race?: string;
+  location?: string;
+  category?: string;
+  weight?: number;
+  passport?: string;
+  hair?: string;
   gender: string;
   father?: Horse;
   mother?: Horse;
@@ -20,11 +28,18 @@ export const horses: Record<number, Horse> = {
   6002326: {
     id: 6002326,
     name: "Amy Down Ryon (Panzona)",
+    bornDate: "7 marzo de 2019",
     birthDate: "5A 6M 2D",
     microchip: 933000320656141,
     isPregnant: true,
     gestationDays: 340,
-    currentDays: 270,
+    currentDays: 300,
+    race: "Apalosa",
+    hair: "IDK",
+    passport: "3453esdadsfg",
+    location: "Racho Mezquite",
+    category: "Semental",
+    weight: 150,
     imageUrl:
       "https://www.fullbuckethealth.com/cdn/shop/articles/FullBucket_Horse_Age_Chart_800x.jpg?v=1597367323",
     gender: "female",
