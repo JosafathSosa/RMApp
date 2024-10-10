@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
   View,
@@ -8,7 +8,12 @@ import {
 } from "react-native";
 import { Avatar, Button, Divider, IconButton } from "react-native-paper";
 import { useRouter, Href } from "expo-router";
-import { getAuth, signOut, updateProfile } from "firebase/auth";
+import {
+  getAuth,
+  signOut,
+  updateProfile,
+  onAuthStateChanged,
+} from "firebase/auth";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import * as ImagePicker from "expo-image-picker";
@@ -43,7 +48,20 @@ export default function ProfileScreen() {
   const [image, setImage] = useState<string | null>(null); // Estado para la imagen
   const router = useRouter();
   const auth = getAuth();
-  const user = auth.currentUser;
+  const [currentUser, setCurrentUser] = useState<any>(null);
+
+  useEffect(() => {
+    // Escuchar los cambios de autenticación y actualizar el estado del usuario
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setCurrentUser(user); // Actualizar el estado del usuario al iniciar sesión o actualizar el perfil
+      } else {
+        setCurrentUser(null);
+      }
+    });
+
+    return () => unsubscribe(); // Desuscribirse del listener cuando el componente se desmonte
+  }, [auth]);
 
   // Manejar la selección de la nueva imagen
   const pickImage = async () => {
@@ -130,7 +148,7 @@ export default function ProfileScreen() {
             source={{
               uri:
                 image ||
-                user?.photoURL ||
+                currentUser?.photoURL ||
                 "https://verdeyazul.diarioinformacion.com/wp-content/uploads/2021/10/horses-g4a417ec1c_1920.jpg",
             }}
             style={styles.avatar}
@@ -145,7 +163,13 @@ export default function ProfileScreen() {
             />
           </Pressable>
         </View>
-        <ThemedText>{user?.email}</ThemedText>
+        <View style={styles.displayNameContainer}>
+          <ThemedText style={styles.displayName}>
+            Bienvenido {currentUser?.displayName || ""}
+          </ThemedText>
+          <Divider />
+          <ThemedText>{currentUser?.email}</ThemedText>
+        </View>
       </ThemedView>
 
       {/* FlatList que muestra las opciones */}
@@ -193,6 +217,13 @@ const styles = StyleSheet.create({
   },
   avatar: {
     marginVertical: 30,
+  },
+  displayNameContainer: {
+    gap: 10,
+  },
+  displayName: {
+    fontSize: 20,
+    marginBottom: 6,
   },
   editIcon: {
     position: "absolute",
