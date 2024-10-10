@@ -7,23 +7,36 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { Avatar, Button, Divider, IconButton } from "react-native-paper";
-import { useRouter } from "expo-router";
+import { useRouter, Href } from "expo-router";
 import { getAuth, signOut, updateProfile } from "firebase/auth";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
-import * as ImagePicker from "expo-image-picker"; // Para seleccionar la imagen
-import { ref, uploadBytes, getDownloadURL, getStorage } from "firebase/storage"; // Firebase Storage
+import * as ImagePicker from "expo-image-picker";
+import { ref, uploadBytes, getDownloadURL, getStorage } from "firebase/storage";
 import Toast from "react-native-toast-message";
+
+type Routes =
+  | `/changeName`
+  | `/horseCategories`
+  | `/locations`
+  | `/breeds`
+  | `/coats`
+  | `/associations`
+  | `${string}`;
 
 type Option = {
   icon: string; // Nombre del ícono
   name: string; // Nombre de la opción
+  path: Routes;
 };
 
 const options: Option[] = [
-  { icon: "account", name: "Categoría" },
-  { icon: "map-marker", name: "Ubicación" },
-  { icon: "cow", name: "Razas" },
+  { icon: "account", name: "Cambiar nombre", path: "/changeName" },
+  { icon: "horse", name: "Categorías de caballos", path: "/horseCategories" },
+  { icon: "map-marker", name: "Ubicaciones", path: "/locations" },
+  { icon: "horseshoe", name: "Razas", path: "/breeds" },
+  { icon: "cow", name: "Pelos", path: "/coats" },
+  { icon: "certificate", name: "Asociaciones", path: "/associations" },
 ];
 
 export default function ProfileScreen() {
@@ -83,16 +96,25 @@ export default function ProfileScreen() {
     });
   };
 
+  // Función para manejar la navegación
+  const handleNavigation = (item: Option) => {
+    if (item.path) {
+      router.push(item.path as Href); // Sin usar el objeto pathname, solo pasamos la ruta directamente
+    } else {
+      console.log("Ruta no definida para esta opción.");
+    }
+  };
+
   // Función para renderizar cada ítem de la lista de opciones
   const renderItem = ({ item }: { item: Option }) => (
-    <TouchableOpacity onPress={() => console.log("Modals")}>
+    <TouchableOpacity onPress={() => handleNavigation(item)}>
       <ThemedView>
         <View style={styles.optionContainer}>
           <View style={{ flexDirection: "row", alignItems: "center" }}>
             <IconButton icon={item.icon} size={20} />
             <ThemedText>{item.name}</ThemedText>
           </View>
-          <IconButton icon="arrow-right" size={20} />
+          <IconButton icon="arrow-right" size={17} iconColor="gray" />
         </View>
         <Divider />
       </ThemedView>
