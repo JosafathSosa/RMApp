@@ -42,7 +42,6 @@ export default function Index() {
         const categoriesRef = ref(db, "categories");
 
         await push(categoriesRef, { categoryName: formValue.categoryName });
-        console.log(formValue);
 
         Toast.show({
           type: "success",
@@ -85,8 +84,8 @@ export default function Index() {
           <View>
             {categories.length > 0 ? (
               categories.map((category, index) => (
-                <View style={styles.horseCategoryName}>
-                  <ThemedText key={index} style={{ marginTop: 10 }}>
+                <View style={styles.horseCategoryName} key={index}>
+                  <ThemedText style={{ marginTop: 10 }}>
                     {category.categoryName}
                   </ThemedText>
                   <View style={{ flexDirection: "row" }}>
@@ -102,7 +101,7 @@ export default function Index() {
                 </View>
               ))
             ) : (
-              <Text>No hay categorías disponibles</Text>
+              <ThemedText>No hay categorías disponibles</ThemedText>
             )}
           </View>
 
