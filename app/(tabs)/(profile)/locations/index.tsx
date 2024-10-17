@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Pressable, StyleSheet, Text } from "react-native";
+import { View, Pressable, StyleSheet } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { AntDesign } from "@expo/vector-icons";
 import {
@@ -12,13 +12,14 @@ import {
   Divider,
   IconButton,
 } from "react-native-paper";
-import { getDatabase, ref, push, onValue } from "firebase/database";
+import { getDatabase, ref, push, onValue, remove } from "firebase/database";
 import { initalValues, validationSchema } from "./locations.data";
 import { useFormik } from "formik";
 import Toast from "react-native-toast-message";
 import { ThemedView } from "@/components/ThemedView";
 
 interface Location {
+  id: string;
   location: string;
 }
 
@@ -63,17 +64,40 @@ export default function Index() {
 
   useEffect(() => {
     const db = getDatabase();
-    const categoriesRef = ref(db, "locations");
+    const locationsRef = ref(db, "locations");
 
-    onValue(categoriesRef, (snapshot) => {
+    onValue(locationsRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
-        // Transformamos los datos en un array de objetos Location
-        const locationList: Location[] = Object.values(data) as Location[];
-        setLocations(locationList); // Guardar los objetos de categoría
+        const locationsList = Object.keys(data).map((key) => ({
+          id: key,
+          location: data[key].location,
+        }));
+        setLocations(locationsList);
       }
     });
   }, []);
+
+  const deleteLocation = async (locationId: string) => {
+    try {
+      const db = getDatabase();
+      const locationRef = ref(db, `locations/${locationId}`);
+
+      await remove(locationRef);
+
+      Toast.show({
+        type: "success",
+        text1: "Ubicación eliminada exitosamente",
+        position: "bottom",
+      });
+    } catch (error) {
+      Toast.show({
+        type: "error",
+        text1: "Hubo un error al eliminar la ubicación",
+        position: "bottom",
+      });
+    }
+  };
 
   return (
     <Provider>
@@ -83,8 +107,8 @@ export default function Index() {
 
           <View>
             {locations.length > 0 ? (
-              locations.map((location, index) => (
-                <View style={styles.horseCategoryName} key={index}>
+              locations.map((location, key) => (
+                <View style={styles.horseCategoryName} key={key}>
                   <ThemedText style={{ marginTop: 10 }}>
                     {location.location}
                   </ThemedText>
@@ -95,14 +119,14 @@ export default function Index() {
                     />
                     <IconButton
                       icon="trash-can-outline"
-                      onPress={() => console.log("Eliminar")}
+                      onPress={() => deleteLocation(location.id)}
                     />
                   </View>
                 </View>
               ))
             ) : (
               <ThemedText style={{ textAlign: "center", marginTop: 20 }}>
-                No hay categorías disponibles
+                No hay ubicaciones disponibles
               </ThemedText>
             )}
           </View>

@@ -12,13 +12,15 @@ import {
   Divider,
   IconButton,
 } from "react-native-paper";
-import { getDatabase, ref, push, onValue } from "firebase/database";
+import { getDatabase, ref, push, onValue, remove } from "firebase/database";
 import { initialValues, validationSchema } from "./breeds.data";
 import { useFormik } from "formik";
 import Toast from "react-native-toast-message";
 import { ThemedView } from "@/components/ThemedView";
+import { getStorage } from "firebase/storage";
 
 interface Breed {
+  id: string;
   breed: string;
 }
 
@@ -68,23 +70,46 @@ export default function Index() {
     onValue(breedsRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
-        // Transformamos los datos en un array de objetos Breed
-        const breedsList: Breed[] = Object.values(data) as Breed[];
-        setBreeds(breedsList); // Guardar los objetos de categoría
+        const breedsList = Object.keys(data).map((key) => ({
+          id: key,
+          breed: data[key].breed,
+        }));
+        setBreeds(breedsList);
       }
     });
   }, []);
+
+  const deleteBreed = async (breedId: string) => {
+    try {
+      const db = getDatabase();
+      const breedRef = ref(db, `breeds/${breedId}`);
+
+      await remove(breedRef);
+
+      Toast.show({
+        type: "success",
+        text1: "Raza eliminada exitosamente",
+        position: "bottom",
+      });
+    } catch (error) {
+      Toast.show({
+        type: "error",
+        text1: "La raza no se eliminó correctamente",
+        position: "bottom",
+      });
+    }
+  };
 
   return (
     <Provider>
       <View style={styles.container}>
         <ThemedView style={styles.categoryContainer}>
-          <ThemedText style={styles.title}>Categoria de caballos</ThemedText>
+          <ThemedText style={styles.title}>Razas de caballos</ThemedText>
 
           <View>
             {breeds.length > 0 ? (
-              breeds.map((breed, index) => (
-                <View style={styles.horseCategoryName} key={index}>
+              breeds.map((breed, key) => (
+                <View style={styles.horseCategoryName} key={key}>
                   <ThemedText style={{ marginTop: 10 }}>
                     {breed.breed}
                   </ThemedText>
@@ -95,14 +120,14 @@ export default function Index() {
                     />
                     <IconButton
                       icon="trash-can-outline"
-                      onPress={() => console.log("Eliminar")}
+                      onPress={() => deleteBreed(breed.id)}
                     />
                   </View>
                 </View>
               ))
             ) : (
               <ThemedText style={{ textAlign: "center", marginTop: 20 }}>
-                No hay categorías disponibles
+                No hay razas disponibles
               </ThemedText>
             )}
           </View>

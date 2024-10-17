@@ -12,13 +12,14 @@ import {
   Divider,
   IconButton,
 } from "react-native-paper";
-import { getDatabase, ref, push, onValue } from "firebase/database";
+import { getDatabase, ref, push, onValue, remove } from "firebase/database";
 import { initialValues, validationSchema } from "./associations.data";
 import { useFormik } from "formik";
 import Toast from "react-native-toast-message";
 import { ThemedView } from "@/components/ThemedView";
 
 interface Association {
+  id: string;
   association: string;
 }
 
@@ -68,14 +69,35 @@ export default function Index() {
     onValue(breedsRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
-        // Transformamos los datos en un array de objetos Breed
-        const associationsList: Association[] = Object.values(
-          data
-        ) as Association[];
-        setAssociation(associationsList); // Guardar los objetos de categoría
+        const associationsList = Object.keys(data).map((key) => ({
+          id: key,
+          association: data[key].association,
+        }));
+        setAssociation(associationsList);
       }
     });
   }, []);
+
+  const deleteAssociation = async (associationId: string) => {
+    try {
+      const db = getDatabase();
+      const associationRef = ref(db, `associations/${associationId}`);
+
+      await remove(associationRef);
+
+      Toast.show({
+        type: "success",
+        text1: "Asociación eliminada exitosamente",
+        position: "bottom",
+      });
+    } catch (error) {
+      Toast.show({
+        type: "error",
+        text1: "Hubo un error al eliminar la asociación",
+        position: "bottom",
+      });
+    }
+  };
 
   return (
     <Provider>
@@ -85,8 +107,8 @@ export default function Index() {
 
           <View>
             {association.length > 0 ? (
-              association.map((association, index) => (
-                <View style={styles.horseCategoryName} key={index}>
+              association.map((association, key) => (
+                <View style={styles.horseCategoryName} key={key}>
                   <ThemedText style={{ marginTop: 10 }}>
                     {association.association}
                   </ThemedText>
@@ -97,7 +119,7 @@ export default function Index() {
                     />
                     <IconButton
                       icon="trash-can-outline"
-                      onPress={() => console.log("Eliminar")}
+                      onPress={() => deleteAssociation(association.id)}
                     />
                   </View>
                 </View>
