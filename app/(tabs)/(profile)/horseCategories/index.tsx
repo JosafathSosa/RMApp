@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Pressable, StyleSheet, Text } from "react-native";
+import { View, Pressable, StyleSheet } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { AntDesign } from "@expo/vector-icons";
 import {
@@ -9,16 +9,16 @@ import {
   Provider,
   TextInput,
   Title,
-  Divider,
   IconButton,
 } from "react-native-paper";
-import { getDatabase, ref, push, onValue } from "firebase/database";
+import { getDatabase, ref, push, onValue, remove } from "firebase/database";
 import { initalValues, validationSchema } from "./horseCategories.data";
 import { useFormik } from "formik";
 import Toast from "react-native-toast-message";
 import { ThemedView } from "@/components/ThemedView";
 
 interface Category {
+  id: string;
   categoryName: string;
 }
 
@@ -68,12 +68,35 @@ export default function Index() {
     onValue(categoriesRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
-        // Transformamos los datos en un array de objetos Category
-        const categoryList: Category[] = Object.values(data) as Category[];
-        setCategories(categoryList); // Guardar los objetos de categoría
+        const categoryList = Object.keys(data).map((key) => ({
+          id: key,
+          categoryName: data[key].categoryName,
+        }));
+        setCategories(categoryList); // Guardar los objetos de categoría con ID
       }
     });
   }, []);
+
+  const deleteCategory = async (categoryId: string) => {
+    try {
+      const db = getDatabase();
+      const categoryRef = ref(db, `categories/${categoryId}`);
+
+      await remove(categoryRef);
+
+      Toast.show({
+        type: "success",
+        text1: "Categoría eliminada exitosamente",
+        position: "bottom",
+      });
+    } catch (error) {
+      Toast.show({
+        type: "error",
+        text1: "Hubo un error al eliminar la categoría",
+        position: "bottom",
+      });
+    }
+  };
 
   return (
     <Provider>
@@ -83,8 +106,8 @@ export default function Index() {
 
           <View>
             {categories.length > 0 ? (
-              categories.map((category, index) => (
-                <View style={styles.horseCategoryName} key={index}>
+              categories.map((category, key) => (
+                <View style={styles.horseCategoryName} key={key}>
                   <ThemedText style={{ marginTop: 10 }}>
                     {category.categoryName}
                   </ThemedText>
@@ -95,7 +118,7 @@ export default function Index() {
                     />
                     <IconButton
                       icon="trash-can-outline"
-                      onPress={() => console.log("Eliminar")}
+                      onPress={() => deleteCategory(category.id)} // Eliminar categoría
                     />
                   </View>
                 </View>
