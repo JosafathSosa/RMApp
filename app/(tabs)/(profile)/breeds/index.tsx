@@ -18,6 +18,7 @@ import { useFormik } from "formik";
 import Toast from "react-native-toast-message";
 import { ThemedView } from "@/components/ThemedView";
 import { getStorage } from "firebase/storage";
+import { LoadingModal } from "@/components/shared/loadingModal/LoadingModal";
 
 interface Breed {
   id: string;
@@ -64,6 +65,7 @@ export default function Index() {
   });
 
   useEffect(() => {
+    setIsLoading(true);
     const db = getDatabase();
     const breedsRef = ref(db, "breeds");
 
@@ -76,11 +78,13 @@ export default function Index() {
         }));
         setBreeds(breedsList);
       }
+      setIsLoading(false);
     });
   }, []);
 
   const deleteBreed = async (breedId: string) => {
     try {
+      setIsLoading(true);
       const db = getDatabase();
       const breedRef = ref(db, `breeds/${breedId}`);
 
@@ -91,6 +95,7 @@ export default function Index() {
         text1: "Raza eliminada exitosamente",
         position: "bottom",
       });
+      setIsLoading(false);
     } catch (error) {
       Toast.show({
         type: "error",
@@ -126,9 +131,7 @@ export default function Index() {
                 </View>
               ))
             ) : (
-              <ThemedText style={{ textAlign: "center", marginTop: 20 }}>
-                No hay razas disponibles
-              </ThemedText>
+              <LoadingModal isLoading={isLoading} />
             )}
           </View>
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Pressable, StyleSheet } from "react-native";
+import { View, Pressable, StyleSheet, Text } from "react-native"; // Asegúrate de que Text esté importado
 import { ThemedText } from "@/components/ThemedText";
 import { AntDesign } from "@expo/vector-icons";
 import {
@@ -12,10 +12,10 @@ import {
   IconButton,
 } from "react-native-paper";
 import { getDatabase, ref, push, onValue, remove } from "firebase/database";
-import { initalValues, validationSchema } from "./horseCategories.data";
 import { useFormik } from "formik";
 import Toast from "react-native-toast-message";
 import { ThemedView } from "@/components/ThemedView";
+import { LoadingModal } from "@/components/shared/loadingModal/LoadingModal";
 
 interface Category {
   id: string;
@@ -23,17 +23,15 @@ interface Category {
 }
 
 export default function Index() {
-  const [visible, setVisible] = useState<boolean>(false); // Estado para el modal
+  const [visible, setVisible] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [categories, setCategories] = useState<Category[]>([]);
 
-  // Funciones para manejar la visibilidad del modal
   const showModal = () => setVisible(true);
   const hideModal = () => setVisible(false);
 
   const formik = useFormik({
-    initialValues: initalValues(),
-    validationSchema: validationSchema(),
+    initialValues: { categoryName: "" },
     validateOnChange: false,
     onSubmit: async (formValue) => {
       try {
@@ -57,11 +55,13 @@ export default function Index() {
           text1: "Hubo un error al guardar la categoria",
           position: "bottom",
         });
+        setIsLoading(false);
       }
     },
   });
 
   useEffect(() => {
+    setIsLoading(true);
     const db = getDatabase();
     const categoriesRef = ref(db, "categories");
 
@@ -72,13 +72,15 @@ export default function Index() {
           id: key,
           categoryName: data[key].categoryName,
         }));
-        setCategories(categoryList); // Guardar los objetos de categoría con ID
+        setCategories(categoryList);
       }
+      setIsLoading(false);
     });
   }, []);
 
   const deleteCategory = async (categoryId: string) => {
     try {
+      setIsLoading(true);
       const db = getDatabase();
       const categoryRef = ref(db, `categories/${categoryId}`);
 
@@ -89,12 +91,14 @@ export default function Index() {
         text1: "Categoría eliminada exitosamente",
         position: "bottom",
       });
+      setIsLoading(false);
     } catch (error) {
       Toast.show({
         type: "error",
         text1: "Hubo un error al eliminar la categoría",
         position: "bottom",
       });
+      setIsLoading(false);
     }
   };
 
@@ -103,7 +107,6 @@ export default function Index() {
       <View style={styles.container}>
         <ThemedView style={styles.categoryContainer}>
           <ThemedText style={styles.title}>Categoria de caballos</ThemedText>
-
           <View>
             {categories.length > 0 ? (
               categories.map((category, key) => (
@@ -118,16 +121,15 @@ export default function Index() {
                     />
                     <IconButton
                       icon="trash-can-outline"
-                      onPress={() => deleteCategory(category.id)} // Eliminar categoría
+                      onPress={() => deleteCategory(category.id)}
                     />
                   </View>
                 </View>
               ))
             ) : (
-              <ThemedText>No hay categorías disponibles</ThemedText>
+              <LoadingModal isLoading={isLoading} />
             )}
           </View>
-
           {/* Modal */}
           <Portal>
             <Modal
@@ -167,9 +169,10 @@ export default function Index() {
               </Button>
             </Modal>
           </Portal>
+          {/* Loading Modal */}
         </ThemedView>
         <Pressable
-          onPress={showModal} // Muestra el modal al hacer clic
+          onPress={showModal}
           style={({ pressed }) => [
             styles.AddHorseDetailButton,
             { transform: [{ scale: pressed ? 0.9 : 1 }] },
@@ -212,9 +215,11 @@ const styles = StyleSheet.create({
     margin: 20,
     borderRadius: 10,
     gap: 15,
+    backgroundColor: "gray",
   },
   modalText: {
     fontSize: 18,
+    textAlign: "center",
   },
   closeButton: {
     marginTop: 10,

@@ -17,6 +17,7 @@ import { initalValues, validationSchema } from "./locations.data";
 import { useFormik } from "formik";
 import Toast from "react-native-toast-message";
 import { ThemedView } from "@/components/ThemedView";
+import { LoadingModal } from "@/components/shared/loadingModal/LoadingModal";
 
 interface Location {
   id: string;
@@ -63,6 +64,7 @@ export default function Index() {
   });
 
   useEffect(() => {
+    setIsLoading(true);
     const db = getDatabase();
     const locationsRef = ref(db, "locations");
 
@@ -75,11 +77,13 @@ export default function Index() {
         }));
         setLocations(locationsList);
       }
+      setIsLoading(false);
     });
   }, []);
 
   const deleteLocation = async (locationId: string) => {
     try {
+      setIsLoading(true);
       const db = getDatabase();
       const locationRef = ref(db, `locations/${locationId}`);
 
@@ -90,6 +94,7 @@ export default function Index() {
         text1: "Ubicación eliminada exitosamente",
         position: "bottom",
       });
+      setIsLoading(false);
     } catch (error) {
       Toast.show({
         type: "error",
@@ -125,9 +130,7 @@ export default function Index() {
                 </View>
               ))
             ) : (
-              <ThemedText style={{ textAlign: "center", marginTop: 20 }}>
-                No hay ubicaciones disponibles
-              </ThemedText>
+              <LoadingModal isLoading={isLoading} />
             )}
           </View>
 

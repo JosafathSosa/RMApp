@@ -17,6 +17,7 @@ import { initialValues, validationSchema } from "./associations.data";
 import { useFormik } from "formik";
 import Toast from "react-native-toast-message";
 import { ThemedView } from "@/components/ThemedView";
+import { LoadingModal } from "@/components/shared/loadingModal/LoadingModal";
 
 interface Association {
   id: string;
@@ -63,6 +64,7 @@ export default function Index() {
   });
 
   useEffect(() => {
+    setIsLoading(true);
     const db = getDatabase();
     const breedsRef = ref(db, "associations");
 
@@ -75,11 +77,13 @@ export default function Index() {
         }));
         setAssociation(associationsList);
       }
+      setIsLoading(false);
     });
   }, []);
 
   const deleteAssociation = async (associationId: string) => {
     try {
+      setIsLoading(true);
       const db = getDatabase();
       const associationRef = ref(db, `associations/${associationId}`);
 
@@ -90,6 +94,7 @@ export default function Index() {
         text1: "Asociación eliminada exitosamente",
         position: "bottom",
       });
+      setIsLoading(false);
     } catch (error) {
       Toast.show({
         type: "error",
@@ -125,9 +130,7 @@ export default function Index() {
                 </View>
               ))
             ) : (
-              <ThemedText style={{ textAlign: "center", marginTop: 20 }}>
-                Aun no hay asociaciones registradas
-              </ThemedText>
+              <LoadingModal isLoading={isLoading} />
             )}
           </View>
 
