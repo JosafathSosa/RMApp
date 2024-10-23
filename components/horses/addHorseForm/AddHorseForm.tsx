@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, StyleSheet, Platform } from "react-native";
-import { TextInput, Button, Chip, IconButton, Title } from "react-native-paper";
+import { TextInput, Button, Chip, IconButton, Menu } from "react-native-paper";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import DateTimePicker, {
@@ -9,15 +9,47 @@ import DateTimePicker, {
 import { useFormik } from "formik";
 import { initialValues, validationSchema } from "./AddHorseForm.data";
 import Toast from "react-native-toast-message";
+import { getDatabase, onValue, ref } from "firebase/database";
 
 export const AddHorseForm = () => {
-  const [sex, setSex] = useState("Macho");
-  const [state, setState] = useState("Activo");
-
-  const [reproductiveStatus, setReproductiveStatus] = useState("Reproductor");
-
   const [date, setDate] = useState<Date>(new Date());
   const [show, setShow] = useState(false);
+  const [categories, setCategories] = useState<string[]>([]);
+  const [locations, setLocations] = useState<string[]>([]);
+  const [categoryMenuVisible, setCategoryMenuVisible] = useState(false);
+  const [locationMenuVisible, setLocationMenuVisible] = useState(false);
+
+  useEffect(() => {
+    const db = getDatabase();
+
+    const categoriesRef = ref(db, "categories");
+    onValue(categoriesRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        setCategories(
+          Object.values(data).map((item: any) => item.categoryName)
+        );
+      }
+    });
+
+    const locationRef = ref(db, "locations");
+    onValue(locationRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        setLocations(Object.values(data).map((item: any) => item.location));
+      }
+    });
+  }, []);
+
+  const handleSelectCategory = (category: string) => {
+    formik.setFieldValue("category", category);
+    setCategoryMenuVisible(false);
+  };
+
+  const handleSelectLocation = (location: string) => {
+    formik.setFieldValue("location", location);
+    setLocationMenuVisible(false);
+  };
 
   const formik = useFormik({
     initialValues: initialValues(),
@@ -42,8 +74,11 @@ export const AddHorseForm = () => {
     selectedDate?: Date | undefined
   ) => {
     const currentDate = selectedDate || date;
-    setShow(Platform.OS === "ios"); // Mantener abierto en iOS hasta confirmar
+    setShow(Platform.OS === "ios");
     setDate(currentDate);
+
+    // Pasar la fecha como valor a Formik
+    formik.setFieldValue("birthDate", currentDate);
   };
 
   const showDatepicker = () => {
@@ -74,9 +109,6 @@ export const AddHorseForm = () => {
         onChangeText={(text) => formik.setFieldValue("name", text)}
         error={formik.touched.name && formik.errors.name ? true : false}
       />
-      {formik.touched.name && formik.errors.name && (
-        <Title style={styles.errorText}>{formik.errors.name}</Title>
-      )}
       {/* Fecha de nacimiento */}
 
       {show && (
@@ -89,16 +121,20 @@ export const AddHorseForm = () => {
       )}
       <TextInput
         label="Fecha de nacimiento"
-        value={date.toLocaleDateString()} // Mostrar la fecha seleccionada
+        value={
+          formik.values.birthDate
+            ? new Date(formik.values.birthDate).toLocaleDateString()
+            : ""
+        } // Mostrar la fecha seleccionada
         mode="outlined"
-        right={<TextInput.Icon icon="calendar" onPress={showDatepicker} />} // Abrir el DatePicker
+        right={<TextInput.Icon icon="calendar" onPress={showDatepicker} />}
         style={{ marginBottom: 10 }}
-        editable={false} // Evitar que el usuario edite el campo manualmente
-        onChangeText={(text) => formik.setFieldValue("birthDate", text)}
+        editable={false}
+        error={
+          formik.touched.birthDate && formik.errors.birthDate ? true : false
+        }
       />
-      {formik.touched.birthDate && formik.errors.birthDate && (
-        <Title style={styles.errorText}>{formik.errors.birthDate}</Title>
-      )}
+
       {/* ID y Número */}
       <View style={styles.row}>
         <TextInput
@@ -106,35 +142,32 @@ export const AddHorseForm = () => {
           mode="outlined"
           style={[styles.input, styles.halfInput, { marginRight: 5 }]}
           onChangeText={(text) => formik.setFieldValue("id", text)}
+          error={formik.touched.id && formik.errors.id ? true : false}
         />
         <TextInput
           label="Número"
           mode="outlined"
           style={[styles.input, styles.halfInput, { marginLeft: 5 }]}
           onChangeText={(text) => formik.setFieldValue("phone", text)}
+          error={formik.touched.phone && formik.errors.phone ? true : false}
         />
       </View>
-      {formik.touched.id && formik.errors.id && (
-        <Title style={styles.errorText}>{formik.errors.id}</Title>
-      )}
-      {formik.touched.phone && formik.errors.phone && (
-        <Title style={styles.errorText}>{formik.errors.phone}</Title>
-      )}
+
       {/* Sexo */}
       <ThemedText>Sexo</ThemedText>
       <View style={styles.chipContainer}>
         <Chip
           mode="outlined"
-          selected={sex === "Macho"}
-          onPress={() => setSex("Macho")}
+          selected={formik.values.sex === "Macho"}
+          onPress={() => formik.setFieldValue("sex", "Macho")}
           style={styles.chip}
         >
           Macho
         </Chip>
         <Chip
           mode="outlined"
-          selected={sex === "Hembra"}
-          onPress={() => setSex("Hembra")}
+          selected={formik.values.sex === "Hembra"}
+          onPress={() => formik.setFieldValue("sex", "Hembra")}
           style={styles.chip}
         >
           Hembra
@@ -147,16 +180,18 @@ export const AddHorseForm = () => {
       <View style={styles.chipContainer}>
         <Chip
           mode="outlined"
-          selected={reproductiveStatus === "Reproductor"}
-          onPress={() => setReproductiveStatus("Reproductor")}
+          selected={formik.values.reproductiveState === "Reproductor"}
+          onPress={() =>
+            formik.setFieldValue("reproductiveState", "Reproductor")
+          }
           style={styles.chip}
         >
           Reproductor
         </Chip>
         <Chip
           mode="outlined"
-          selected={reproductiveStatus === "Castrado"}
-          onPress={() => setReproductiveStatus("Castrado")}
+          selected={formik.values.reproductiveState === "Castrado"}
+          onPress={() => formik.setFieldValue("reproductiveState", "Castrado")}
           style={styles.chip}
         >
           Castrado
@@ -164,25 +199,97 @@ export const AddHorseForm = () => {
       </View>
 
       {/* Padre, Madre, Ubicación, Categorías */}
-      <TextInput label="Padre" mode="outlined" style={styles.input} />
-      <TextInput label="Madre" mode="outlined" style={styles.input} />
-      <TextInput label="Ubicación" mode="outlined" style={styles.input} />
-      <TextInput label="Categorías" mode="outlined" style={styles.input} />
+      <TextInput
+        label="Padre"
+        mode="outlined"
+        style={styles.input}
+        onChangeText={(text) => formik.setFieldValue("father", text)}
+      />
+
+      <TextInput
+        label="Madre"
+        mode="outlined"
+        style={styles.input}
+        onChangeText={(text) => formik.setFieldValue("mother", text)}
+      />
+
+      <View>
+        <Menu
+          visible={categoryMenuVisible}
+          onDismiss={() => setCategoryMenuVisible(false)}
+          anchor={
+            <TextInput
+              label="Categoría"
+              mode="outlined"
+              value={formik.values.category}
+              style={styles.input}
+              editable={false} // Desactivar edición manual
+              right={
+                <TextInput.Icon
+                  icon="menu-down"
+                  onPress={() => setCategoryMenuVisible(true)}
+                />
+              } // Icono de menú para desplegar las opciones
+              error={
+                formik.touched.category && formik.errors.category ? true : false
+              }
+            />
+          }
+        >
+          {categories.map((category, index) => (
+            <Menu.Item
+              key={index}
+              onPress={() => handleSelectCategory(category)}
+              title={category}
+            />
+          ))}
+        </Menu>
+        <Menu
+          visible={locationMenuVisible}
+          onDismiss={() => setLocationMenuVisible(false)}
+          anchor={
+            <TextInput
+              label="Ubicación"
+              mode="outlined"
+              value={formik.values.location}
+              style={styles.input}
+              editable={false} // Desactivar edición manual
+              right={
+                <TextInput.Icon
+                  icon="menu-down"
+                  onPress={() => setLocationMenuVisible(true)}
+                />
+              } // Icono de menú para desplegar las opciones
+              error={
+                formik.touched.location && formik.errors.location ? true : false
+              }
+            />
+          }
+        >
+          {locations.map((location, index) => (
+            <Menu.Item
+              key={index}
+              onPress={() => handleSelectLocation(location)}
+              title={location}
+            />
+          ))}
+        </Menu>
+      </View>
 
       <ThemedText>Activo</ThemedText>
       <View style={styles.chipContainer}>
         <Chip
           mode="outlined"
-          selected={state === "Activo"}
-          onPress={() => setState("Activo")}
+          selected={formik.values.status === "Activo"}
+          onPress={() => formik.setFieldValue("status", "Activo")}
           style={styles.chip}
         >
           Activo
         </Chip>
         <Chip
           mode="outlined"
-          selected={state === " Referencia"}
-          onPress={() => setState(" Referencia")}
+          selected={formik.values.status === "Referencia"}
+          onPress={() => formik.setFieldValue("status", "Referencia")}
           style={styles.chip}
         >
           Referencia

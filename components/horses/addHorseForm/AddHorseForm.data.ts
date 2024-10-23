@@ -5,11 +5,14 @@ export function initialValues() {
     name: "",
     id: "",
     phone: "",
-    fahter: "",
+    father: "",
     mother: "",
     location: "",
     category: "",
     birthDate: "",
+    sex: "",
+    reproductiveState: "",
+    status: "",
   };
 }
 
@@ -20,10 +23,17 @@ export function validationSchema() {
     phone: Yup.string()
       .matches(/^\d+$/, "El número debe ser solo dígitos")
       .max(10, "Deben ser máximo 10 digitos"),
-    fahter: Yup.string(),
+    father: Yup.string(),
     mother: Yup.string(),
     location: Yup.string().required("La ubicación es obligatoria"),
     category: Yup.string().required("Las categorías son obligatorias"),
-    birthDate: Yup.date().required("La fecha de nacimiento es obligatoria"),
+    birthDate: Yup.date()
+      .required("La fecha de nacimiento es obligatoria")
+      .typeError("La fecha no es válida"),
+    sex: Yup.string().required("El sexo es necesario"),
+    reproductiveState: Yup.string().required(
+      "El estado reproductivo es necesario"
+    ),
+    status: Yup.string().required("El estado es necesario"),
   });
 }
