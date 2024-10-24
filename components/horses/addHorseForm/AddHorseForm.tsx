@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { View, StyleSheet, Platform } from "react-native";
-import { TextInput, Button, Chip, IconButton, Menu } from "react-native-paper";
+import {
+  TextInput,
+  Button,
+  Chip,
+  IconButton,
+  Menu,
+  Avatar,
+} from "react-native-paper";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import DateTimePicker, {
@@ -9,20 +16,37 @@ import DateTimePicker, {
 import { useFormik } from "formik";
 import { initialValues, validationSchema } from "./AddHorseForm.data";
 import Toast from "react-native-toast-message";
-import { getDatabase, onValue, ref } from "firebase/database";
+import * as ImagePicker from "expo-image-picker";
+import {
+  getDatabase,
+  onValue,
+  ref as databaseRef,
+  push,
+} from "firebase/database";
+import {
+  getDownloadURL,
+  getStorage,
+  ref as storageRef,
+  uploadBytes,
+} from "firebase/storage";
+import { LoadingModal } from "@/components/shared/loadingModal/LoadingModal";
+import { useRouter } from "expo-router";
 
 export const AddHorseForm = () => {
+  const router = useRouter();
+  const [horseImage, setHorseImage] = useState<string>("");
   const [date, setDate] = useState<Date>(new Date());
   const [show, setShow] = useState(false);
   const [categories, setCategories] = useState<string[]>([]);
   const [locations, setLocations] = useState<string[]>([]);
   const [categoryMenuVisible, setCategoryMenuVisible] = useState(false);
   const [locationMenuVisible, setLocationMenuVisible] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const db = getDatabase();
 
-    const categoriesRef = ref(db, "categories");
+    const categoriesRef = databaseRef(db, "categories");
     onValue(categoriesRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
@@ -32,7 +56,7 @@ export const AddHorseForm = () => {
       }
     });
 
-    const locationRef = ref(db, "locations");
+    const locationRef = databaseRef(db, "locations");
     onValue(locationRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
@@ -40,6 +64,48 @@ export const AddHorseForm = () => {
       }
     });
   }, []);
+
+  const pickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+    });
+
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      setHorseImage(result.assets[0].uri);
+    }
+  };
+
+  const uploadImageToFirebase = async (uri: string) => {
+    setIsLoading(true);
+    const storage = getStorage();
+
+    try {
+      const response = await fetch(uri);
+      const blob = await response.blob();
+
+      const storageRefe = storageRef(
+        storage,
+        `horsesImages/${Date.now()}-image.jpg`
+      );
+      await uploadBytes(storageRefe, blob);
+
+      const url = await getDownloadURL(storageRefe);
+
+      setIsLoading(false);
+
+      return url;
+    } catch (error) {
+      Toast.show({
+        type: "error",
+        text1: "Error al subir la imagen",
+        position: "bottom",
+      });
+      return "";
+    }
+  };
 
   const handleSelectCategory = (category: string) => {
     formik.setFieldValue("category", category);
@@ -57,7 +123,30 @@ export const AddHorseForm = () => {
     validateOnChange: false,
     onSubmit: async (formValue) => {
       try {
-        console.log(formValue);
+        setIsLoading(true);
+        let imageUrl = "";
+
+        if (horseImage) {
+          imageUrl = await uploadImageToFirebase(horseImage);
+        }
+        const horseDataForm = {
+          ...formValue,
+          url: imageUrl,
+        };
+
+        const db = getDatabase();
+        const horsesRef = databaseRef(db, "horses");
+
+        await push(horsesRef, horseDataForm);
+
+        Toast.show({
+          type: "success",
+          text1: "Caballo guardado correctamente",
+          position: "bottom",
+        });
+
+        setIsLoading(false);
+        router.back();
       } catch (error) {
         Toast.show({
           type: "error",
@@ -88,17 +177,24 @@ export const AddHorseForm = () => {
   return (
     <ThemedView style={styles.container}>
       {/* Sección de las imágenes */}
-      <ThemedText style={styles.title}>Agrega imagenes:</ThemedText>
+      <ThemedText style={styles.title}>Agrega un caballo</ThemedText>
       <View style={styles.imageSection}>
-        {[...Array(1)].map((_, index) => (
-          <IconButton
-            key={index}
-            icon="camera"
-            size={30}
-            onPress={() => console.log("Agregar imagen")}
-            style={styles.imageButton}
-          />
-        ))}
+        <Avatar.Image
+          size={150}
+          source={{
+            uri:
+              horseImage ||
+              "https://i0.wp.com/thegroomslist.co.uk/wp-content/uploads/2019/03/5-differences-between-horses-as-a-hobby-and-as-a-career.jpg?fit=1002%2C667&ssl=1",
+          }}
+        />
+        <IconButton
+          icon="plus"
+          size={20}
+          iconColor="white"
+          containerColor="green"
+          style={styles.editIcon}
+          onPress={pickImage}
+        />
       </View>
 
       {/* Nombre */}
@@ -302,6 +398,7 @@ export const AddHorseForm = () => {
         onPress={() => formik.handleSubmit()}
         style={styles.button}
         textColor="white"
+        loading={isLoading}
       >
         Crear Caballo
       </Button>
@@ -320,9 +417,15 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
   imageSection: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+    position: "relative",
+    justifyContent: "center",
+    alignItems: "center",
     marginVertical: 15,
+  },
+  editIcon: {
+    position: "absolute",
+    bottom: 0,
+    right: 0,
   },
   imageButton: {
     backgroundColor: "#f2f2f2",
