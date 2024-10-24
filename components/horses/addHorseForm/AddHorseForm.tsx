@@ -123,6 +123,8 @@ export const AddHorseForm = () => {
     validateOnChange: false,
     onSubmit: async (formValue) => {
       try {
+        console.log(formValue);
+
         setIsLoading(true);
         let imageUrl = "";
 
